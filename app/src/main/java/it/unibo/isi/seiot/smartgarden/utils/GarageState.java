@@ -6,7 +6,6 @@ public enum GarageState {
     CLOSING("In chiusura..."),
     OPENING("In apertura..."),
     CLOSING_P("Pausa"), //closing in pause
-    OPENING_P("Pausa"), //opening in pause
     REQ_CLOSE("Richiesta chiusura"), //close request
     REQ_OPEN("Richiesta apertura"), //open request
     REQ_PAUSE("Richiesta pausa");

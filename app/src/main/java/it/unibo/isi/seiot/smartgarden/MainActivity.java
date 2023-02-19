@@ -48,7 +48,6 @@ public class MainActivity extends AppCompatActivity {
     private static final String MANUAL_BTN_STRING = "Manual Control";
     private static final String BT_DEVICE_NOT_FOUND_ERROR = "Bluetooth device not found !";
     private BluetoothChannel btChannel;
-    private AsyncTask<Void, Void, Integer> bluetoothTask;
     private boolean btConnected = false;
 
 
@@ -76,16 +75,11 @@ public class MainActivity extends AppCompatActivity {
         findViewById(R.id.connectBtn).setOnClickListener(this::onConnectBtnClicked);
 
         findViewById(R.id.light_in_switch).setOnClickListener(l ->
-                onSwitchPressed(R.id.light_in_switch, INDOOR_LIGHT_KEY));
-        findViewById(R.id.heating_switch).setOnClickListener(l -> {
-            final SwitchCompat sc = findViewById(R.id.heating_switch);
-            sendData(HEATING_KEY, sc.isChecked() ? 2 : 0);
-        });
-
-        findViewById(R.id.alarm_switch).setOnClickListener(l -> {
-            final SwitchCompat sc = findViewById(R.id.alarm_switch);
-            sendData(ALARM_KEY, sc.isChecked() ? 5 : 4);
-        });
+                onSwitchPressed(R.id.light_in_switch, INDOOR_LIGHT_KEY,1,0));
+        findViewById(R.id.heating_switch).setOnClickListener(l ->
+                onSwitchPressed(R.id.heating_switch, HEATING_KEY,2,0));
+        findViewById(R.id.alarm_switch).setOnClickListener(l ->
+            onSwitchPressed(R.id.alarm_switch, ALARM_KEY,5,4));
 
         ((SeekBar)findViewById(R.id.sliderOutLight)).setOnSeekBarChangeListener(
                 new SeekBar.OnSeekBarChangeListener() {
@@ -117,21 +111,16 @@ public class MainActivity extends AppCompatActivity {
 
     }
 
-    private void onSwitchPressed(final int textViewId, final String desc) {
+    private void onSwitchPressed(final int textViewId, final String desc, final int onValue, final int offValue) {
         final SwitchCompat sc = findViewById(textViewId);
-        sendData(desc, sc.isChecked() ? 1 : 0);
+        sendData(desc, sc.isChecked() ? onValue : offValue);
+        sc.setEnabled(false);
     }
 
     private void onConnectBtnClicked(final View view) {
         view.setEnabled(false);
         try {
-            if (!btConnected) {
-                connectToBTServer();
-            } else {
-                this.btChannel.close();
-                this.bluetoothTask.cancel(this.bluetoothTask.getStatus() == AsyncTask.Status.RUNNING);
-            }
-
+            connectToBTServer();
         } catch (BluetoothDeviceNotFound bluetoothDeviceNotFound) {
             Toast.makeText(this, BT_DEVICE_NOT_FOUND_ERROR, Toast.LENGTH_LONG).show();
             bluetoothDeviceNotFound.printStackTrace();
@@ -140,21 +129,24 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
-    private void controlButtons(final boolean active) {
-        final var buttons = List.of(R.id.light_in_switch, R.id.alarm_switch,
+    private void controlComponentsEnable(final boolean active) {
+        final var components = List.of(R.id.light_in_switch, R.id.alarm_switch,
                 R.id.close_garage_btn, R.id.open_garage_btn, R.id.pause_garage_btn,
-                R.id.heating_switch, R.id.sliderOutLight);
-        buttons.forEach(id -> findViewById(id).setEnabled(active));
+                R.id.heating_switch, R.id.sliderOutLight, R.id.alarm_switch, R.id.heating_switch,
+                R.id.light_in_switch);
+        components.forEach(id -> findViewById(id).setEnabled(active));
+    }
+    private void enableAll() {
+        controlComponentsEnable(true);
     }
 
-    private void enableAllButtons() { controlButtons(true); }
-
-    private void disableAllButtons() { controlButtons(false); }
+    private void disableAllButtons() { controlComponentsEnable(false); }
 
     private void sendData(final String desc, final Object obj) {
         final String msg = desc + ":" + obj;
-        if (this.btConnected && this.bluetoothTask.getStatus() == AsyncTask.Status.RUNNING) {
+        if (this.btConnected) {
             btChannel.sendMessage(msg);
+            Log.d(DBG_TAG,msg);
         } else {
             Log.d(DBG_TAG, "sendData: task bluetooth non in esecuzione e bt non conneso");
         }
@@ -166,12 +158,13 @@ public class MainActivity extends AppCompatActivity {
 
         final UUID uuid = BluetoothUtils.getEmbeddedDeviceDefaultUuid();
 
-        this.bluetoothTask = new ConnectToBluetoothServerTask(serverDevice, uuid, new ConnectionTask.EventListener() {
+        new ConnectToBluetoothServerTask(serverDevice, uuid, new ConnectionTask.EventListener() {
             @Override
             public void onConnectionActive(final BluetoothChannel channel) {
                 Toast.makeText(getApplicationContext(),"Connected", Toast.LENGTH_LONG).show();
                 ((Button)findViewById(R.id.connectBtn)).setText(R.string.disconnect_btn_label);
-                enableAllButtons();
+                enableAll();
+                btConnected = true;
                 btChannel = channel;
                 btChannel.registerListener(new RealBluetoothChannel.Listener() {
                     @Override
@@ -189,10 +182,10 @@ public class MainActivity extends AppCompatActivity {
                             ((TextView)findViewById(R.id.degree_value_temp)).setText(String.valueOf(jsonDataRecv.getInt("hT")));
 
                             int garageState = jsonDataRecv.getInt("gar");
-                            String garageStateString = Optional.ofNullable(values()[0].getDescr()).orElse("No info");
+                            String garageStateString = Optional.ofNullable(values()[garageState].getDescr()).orElse("No info");
                             ((TextView)findViewById(R.id.garage_status_label)).setText(garageStateString);
 
-                            enableAllButtons();
+                            enableAll();
                         } catch (JSONException e) {
                             e.printStackTrace();
                             Log.d(DBG_TAG, "Errore nel leggere il json ricevuto");
