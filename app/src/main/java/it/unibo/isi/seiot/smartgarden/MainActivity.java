@@ -8,6 +8,7 @@ import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
 import android.content.Intent;
 import android.content.pm.PackageManager;
+import android.os.AsyncTask;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
@@ -26,8 +27,8 @@ import org.json.JSONObject;
 
 import java.util.Arrays;
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
-import java.util.function.Function;
 
 import it.unibo.isi.seiot.smartgarden.utils.C;
 import it.unibo.isi.seiot.smartgarden.utils.GarageState;
@@ -47,10 +48,8 @@ public class MainActivity extends AppCompatActivity {
     private static final String MANUAL_BTN_STRING = "Manual Control";
     private static final String BT_DEVICE_NOT_FOUND_ERROR = "Bluetooth device not found !";
     private BluetoothChannel btChannel;
-    private final Function<Integer, Integer> incLightnessStrategy = (c -> c+5);
-    private final Function<Integer, Integer> decLightnessStrategy = (c -> c-5);
-    private final Function<Integer, Integer> incIrrigationStrategy = (c -> c+1 > 5 ? c : c+1);
-    private final Function<Integer, Integer> decIrrigationStrategy = (c -> c-1);
+    private AsyncTask<Void, Void, Integer> bluetoothTask;
+    private boolean btConnected = false;
 
 
     @Override
@@ -126,7 +125,13 @@ public class MainActivity extends AppCompatActivity {
     private void onConnectBtnClicked(final View view) {
         view.setEnabled(false);
         try {
-            connectToBTServer();
+            if (!btConnected) {
+                connectToBTServer();
+            } else {
+                this.btChannel.close();
+                this.bluetoothTask.cancel(this.bluetoothTask.getStatus() == AsyncTask.Status.RUNNING);
+            }
+
         } catch (BluetoothDeviceNotFound bluetoothDeviceNotFound) {
             Toast.makeText(this, BT_DEVICE_NOT_FOUND_ERROR, Toast.LENGTH_LONG).show();
             bluetoothDeviceNotFound.printStackTrace();
@@ -148,7 +153,11 @@ public class MainActivity extends AppCompatActivity {
 
     private void sendData(final String desc, final Object obj) {
         final String msg = desc + ":" + obj;
-        btChannel.sendMessage(msg);
+        if (this.btConnected && this.bluetoothTask.getStatus() == AsyncTask.Status.RUNNING) {
+            btChannel.sendMessage(msg);
+        } else {
+            Log.d(DBG_TAG, "sendData: task bluetooth non in esecuzione e bt non conneso");
+        }
     }
 
     private void connectToBTServer() throws BluetoothDeviceNotFound {
@@ -157,7 +166,7 @@ public class MainActivity extends AppCompatActivity {
 
         final UUID uuid = BluetoothUtils.getEmbeddedDeviceDefaultUuid();
 
-        new ConnectToBluetoothServerTask(serverDevice, uuid, new ConnectionTask.EventListener() {
+        this.bluetoothTask = new ConnectToBluetoothServerTask(serverDevice, uuid, new ConnectionTask.EventListener() {
             @Override
             public void onConnectionActive(final BluetoothChannel channel) {
                 Toast.makeText(getApplicationContext(),"Connected", Toast.LENGTH_LONG).show();
@@ -179,15 +188,14 @@ public class MainActivity extends AppCompatActivity {
                             ((SwitchCompat)findViewById(R.id.heating_switch)).setChecked(jsonDataRecv.getInt("hP") == 1);
                             ((TextView)findViewById(R.id.degree_value_temp)).setText(String.valueOf(jsonDataRecv.getInt("hT")));
 
-                            String garageStateString = "No info";
                             int garageState = jsonDataRecv.getInt("gar");
-                            Arrays.stream(GarageState.values()).findAny();
+                            String garageStateString = Optional.ofNullable(values()[0].getDescr()).orElse("No info");
                             ((TextView)findViewById(R.id.garage_status_label)).setText(garageStateString);
 
                             enableAllButtons();
                         } catch (JSONException e) {
                             e.printStackTrace();
-                            Log.d(DBG_TAG, "Errore nel spacchettare il file json ricevuto");
+                            Log.d(DBG_TAG, "Errore nel leggere il json ricevuto");
                             Toast.makeText(getApplicationContext(),"Errore ricezione dati", Toast.LENGTH_LONG).show();
                         }
                     }
