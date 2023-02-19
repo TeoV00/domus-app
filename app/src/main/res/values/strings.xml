@@ -1,0 +1,14 @@
+<resources>
+    <string name="app_name">Domus App</string>
+    <string name="luci_interne_switch_label">Luci Interne</string>
+    <string name="luci_esterne_switch_label">Luci esterne</string>
+    <string name="garage_header">Garage</string>
+    <string name="open_garage_btn_label">apri</string>
+    <string name="close_garage_btn_label">chiudi</string>
+    <string name="pause_garage_btn_label">pausa</string>
+    <string name="ferma_allarme__btn_label">FERMA ALLARME</string>
+    <string name="illuminazione_title">Illuminazione</string>
+    <string name="connetti_btn_string">Connetti</string>
+    <string name="disconnect_btn_label">DISCONNETTI</string>
+    <string name="connect_btn_label">CONNETTI</string>
+</resources>
