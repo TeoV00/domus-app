@@ -140,7 +140,10 @@ public class MainActivity extends AppCompatActivity {
         controlComponentsEnable(true);
     }
 
-    private void disableAllButtons() { controlComponentsEnable(false); }
+    private void disableAllButtons() {
+        controlComponentsEnable(false);
+        findViewById(R.id.stop_alarm_btn).setEnabled(false);
+    }
 
     private void sendData(final String desc, final Object obj) {
         final String msg = desc + ":" + obj;
