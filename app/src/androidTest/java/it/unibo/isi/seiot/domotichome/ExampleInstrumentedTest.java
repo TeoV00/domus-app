@@ -1,4 +1,4 @@
-package it.unibo.isi.seiot.smartgarden;
+package it.unibo.isi.seiot.domotichome;
 
 import android.content.Context;
 

@@ -12,6 +12,6 @@ dependencyResolutionManagement {
         mavenCentral()
     }
 }
-rootProject.name = "SmartGarden"
+rootProject.name = "DomoticHome"
 include ':app'
 include ':bt-lib'

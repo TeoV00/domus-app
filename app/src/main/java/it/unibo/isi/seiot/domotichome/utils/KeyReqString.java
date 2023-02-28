@@ -1,4 +1,4 @@
-package it.unibo.isi.seiot.smartgarden.utils;
+package it.unibo.isi.seiot.domotichome.utils;
 
 public class KeyReqString {
     public static String INDOOR_LIGHT_KEY = "inLight";

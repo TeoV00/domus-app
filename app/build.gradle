@@ -6,7 +6,7 @@ android {
     compileSdk 33
 
     defaultConfig {
-        applicationId "it.unibo.isi.seiot.smartgarden"
+        applicationId "it.unibo.isi.seiot.domotichome"
         minSdk 24
         targetSdk 33
         versionCode 1
@@ -25,7 +25,7 @@ android {
         sourceCompatibility JavaVersion.VERSION_11
         targetCompatibility JavaVersion.VERSION_11
     }
-    namespace 'it.unibo.isi.seiot.smartgarden'
+    namespace 'it.unibo.isi.seiot.domotichome'
 }
 
 dependencies {

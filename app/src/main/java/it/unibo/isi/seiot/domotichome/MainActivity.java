@@ -1,14 +1,13 @@
-package it.unibo.isi.seiot.smartgarden;
+package it.unibo.isi.seiot.domotichome;
 
-import static it.unibo.isi.seiot.smartgarden.utils.GarageState.*;
-import static it.unibo.isi.seiot.smartgarden.utils.KeyReqString.*;
+import static it.unibo.isi.seiot.domotichome.utils.GarageState.*;
+import static it.unibo.isi.seiot.domotichome.utils.KeyReqString.*;
 
 import android.Manifest;
 import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
 import android.content.Intent;
 import android.content.pm.PackageManager;
-import android.os.AsyncTask;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
@@ -25,16 +24,13 @@ import androidx.core.app.ActivityCompat;
 import org.json.JSONException;
 import org.json.JSONObject;
 
-import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
-import it.unibo.isi.seiot.smartgarden.utils.C;
-import it.unibo.isi.seiot.smartgarden.utils.GarageState;
+import it.unibo.isi.seiot.domotichome.utils.C;
 import unibo.btlib.BluetoothChannel;
 import unibo.btlib.BluetoothUtils;
-import unibo.btlib.CommChannel;
 import unibo.btlib.ConnectToBluetoothServerTask;
 import unibo.btlib.ConnectionTask;
 import unibo.btlib.RealBluetoothChannel;

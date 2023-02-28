@@ -1,4 +1,4 @@
-package it.unibo.isi.seiot.smartgarden.utils;
+package it.unibo.isi.seiot.domotichome.utils;
 
 public enum GarageState {
     CLOSE("Chiuso"),
